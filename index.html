@@ -2,1479 +2,194 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Virellus Terrain Generator v0.2</title>
-
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Virellus Terrain Generator v0.3</title>
 <style>
-* {
-    box-sizing: border-box;
-}
-
-body {
-    margin: 0;
-    background: #10151a;
-    color: #e8edf0;
-    font-family:
-        Inter,
-        "Segoe UI",
-        "Microsoft YaHei",
-        sans-serif;
-}
-
-header {
-    padding: 22px 28px 16px;
-    border-bottom: 1px solid #293139;
-}
-
-h1 {
-    margin: 0;
-    font-size: 22px;
-    font-weight: 650;
-}
-
-.subtitle {
-    margin-top: 6px;
-    color: #89959d;
-    font-size: 13px;
-}
-
-.layout {
-    display: grid;
-    grid-template-columns: 310px minmax(600px, 1fr);
-    min-height: calc(100vh - 80px);
-}
-
-.sidebar {
-    padding: 20px;
-    border-right: 1px solid #293139;
-    background: #151b20;
-}
-
-.section {
-    margin-bottom: 24px;
-}
-
-.section-title {
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: #87939b;
-    margin-bottom: 12px;
-}
-
-.control {
-    margin-bottom: 15px;
-}
-
-.control-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 7px;
-    font-size: 13px;
-}
-
-.value {
-    color: #b9c9d1;
-    font-variant-numeric: tabular-nums;
-}
-
-input[type="range"] {
-    width: 100%;
-    accent-color: #9fb6c0;
-}
-
-.seed-box {
-    width: 100%;
-    padding: 9px 10px;
-    border: 1px solid #354049;
-    background: #0f1418;
-    color: #dce5e9;
-    border-radius: 5px;
-    outline: none;
-}
-
-button {
-    width: 100%;
-    padding: 10px 12px;
-    margin-top: 8px;
-    border: 1px solid #3b4850;
-    border-radius: 5px;
-    background: #202930;
-    color: #e6edf0;
-    cursor: pointer;
-}
-
-button:hover {
-    background: #2a343c;
-}
-
-.primary {
-    background: #30414a;
-}
-
-.primary:hover {
-    background: #3a505b;
-}
-
-.info {
-    font-size: 12px;
-    line-height: 1.65;
-    color: #87939b;
-}
-
-.canvas-wrap {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    padding: 26px;
-    overflow: auto;
-}
-
-canvas {
-    width: min(100%, 1100px);
-    height: auto;
-    background: #d6ded8;
-    border: 1px solid #39454d;
-    box-shadow: 0 10px 35px rgba(0,0,0,.28);
-}
-
-.legend {
-    display: grid;
-    gap: 6px;
-    font-size: 11px;
-}
-
-.legend-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.legend-color {
-    width: 14px;
-    height: 14px;
-    border: 1px solid rgba(0,0,0,.25);
-}
-
-.status {
-    margin-top: 12px;
-    font-size: 11px;
-    color: #718089;
-}
-
-@media (max-width: 900px) {
-    .layout {
-        grid-template-columns: 1fr;
-    }
-
-    .sidebar {
-        border-right: 0;
-        border-bottom: 1px solid #293139;
-    }
-}
+*{box-sizing:border-box}body{margin:0;background:#10151a;color:#e8edf0;font-family:Inter,"Segoe UI","Microsoft YaHei",sans-serif}
+header{padding:20px 26px 15px;border-bottom:1px solid #293139}h1{margin:0;font-size:22px}.subtitle{margin-top:6px;color:#89959d;font-size:13px}
+.layout{display:grid;grid-template-columns:310px minmax(600px,1fr);min-height:calc(100vh - 75px)}
+.sidebar{padding:20px;border-right:1px solid #293139;background:#151b20}.section{margin-bottom:22px}.section-title{font-size:12px;letter-spacing:1px;color:#87939b;margin-bottom:11px}
+.control{margin-bottom:14px}.control-row{display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px}.value{color:#b9c9d1;font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:#9fb6c0}.seed-box{width:100%;padding:9px 10px;border:1px solid #354049;background:#0f1418;color:#dce5e9;border-radius:5px}
+button{width:100%;padding:10px 12px;margin-top:7px;border:1px solid #3b4850;border-radius:5px;background:#202930;color:#e6edf0;cursor:pointer}
+button:hover{background:#2a343c}.primary{background:#30414a}.primary:hover{background:#3a505b}
+.info{font-size:12px;line-height:1.65;color:#87939b}.canvas-wrap{display:flex;justify-content:center;align-items:flex-start;padding:24px;overflow:auto}
+canvas{width:min(100%,1100px);height:auto;background:#d6ded8;border:1px solid #39454d;box-shadow:0 10px 35px rgba(0,0,0,.28)}
+.legend{display:grid;gap:6px;font-size:11px}.legend-item{display:flex;align-items:center;gap:8px}.legend-color{width:14px;height:14px;border:1px solid rgba(0,0,0,.25)}
+.status{margin-top:11px;font-size:11px;color:#718089}@media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{border-right:0;border-bottom:1px solid #293139}}
 </style>
 </head>
-
 <body>
-
-<header>
-    <h1>Virellus Terrain Generator</h1>
-    <div class="subtitle">
-        Terrain-first procedural map · Snowfield Region prototype · v0.2
-    </div>
-</header>
-
+<header><h1>Virellus Terrain Generator</h1><div class="subtitle">Terrain → water → ecology → buildability · Snowfield Region prototype · v0.3</div></header>
 <div class="layout">
-
 <aside class="sidebar">
-
-    <div class="section">
-        <div class="section-title">Terrain</div>
-
-        <div class="control">
-            <div class="control-row">
-                <span>Mountain Strength</span>
-                <span class="value" id="mountainValue">55</span>
-            </div>
-            <input id="mountain" type="range" min="0" max="100" value="55">
-        </div>
-
-        <div class="control">
-            <div class="control-row">
-                <span>Hill Strength</span>
-                <span class="value" id="hillValue">50</span>
-            </div>
-            <input id="hill" type="range" min="0" max="100" value="50">
-        </div>
-
-        <div class="control">
-            <div class="control-row">
-                <span>Terrain Roughness</span>
-                <span class="value" id="roughnessValue">48</span>
-            </div>
-            <input id="roughness" type="range" min="0" max="100" value="48">
-        </div>
-    </div>
-
-    <div class="section">
-        <div class="section-title">Ecology</div>
-
-        <div class="control">
-            <div class="control-row">
-                <span>Forest Density</span>
-                <span class="value" id="forestValue">68</span>
-            </div>
-            <input id="forest" type="range" min="0" max="100" value="68">
-        </div>
-
-        <div class="control">
-            <div class="control-row">
-                <span>River Tendency</span>
-                <span class="value" id="riverValue">62</span>
-            </div>
-            <input id="river" type="range" min="0" max="100" value="62">
-        </div>
-    </div>
-
-    <div class="section">
-        <div class="section-title">Cartography</div>
-
-        <div class="control">
-            <div class="control-row">
-                <span>Contour Density</span>
-                <span class="value" id="contourValue">45</span>
-            </div>
-            <input id="contour" type="range" min="0" max="100" value="45">
-        </div>
-    </div>
-
-    <div class="section">
-        <div class="section-title">Seed</div>
-
-        <input
-            id="seed"
-            class="seed-box"
-            value="TOCQUEVILLE-01"
-        >
-
-        <button class="primary" id="generate">
-            Generate Terrain
-        </button>
-
-        <button id="randomSeed">
-            Random Seed
-        </button>
-
-        <button id="download">
-            Download PNG
-        </button>
-
-        <div class="status" id="status">
-            Ready.
-        </div>
-    </div>
-
-    <div class="section">
-        <div class="section-title">Legend</div>
-
-        <div class="legend">
-
-            <div class="legend-item">
-                <div class="legend-color" style="background:#eef0e7"></div>
-                High terrain
-            </div>
-
-            <div class="legend-item">
-                <div class="legend-color" style="background:#aebaae"></div>
-                Hills
-            </div>
-
-            <div class="legend-item">
-                <div class="legend-color" style="background:#6f846e"></div>
-                Forest
-            </div>
-
-            <div class="legend-item">
-                <div class="legend-color" style="background:#8fa8a5"></div>
-                Lowland
-            </div>
-
-            <div class="legend-item">
-                <div class="legend-color" style="background:#526f7d"></div>
-                River
-            </div>
-
-        </div>
-    </div>
-
-    <div class="info">
-        v0.2 focuses on terrain relationships rather than city construction.
-        <br><br>
-        The long-term pipeline is:
-        <br>
-        terrain → water → ecology → buildability → settlements → roads → city.
-    </div>
-
+<div class="section"><div class="section-title">TERRAIN</div>
+<div class="control"><div class="control-row"><span>Mountain Strength</span><span class="value" id="mountainValue"></span></div><input id="mountain" type="range" min="0" max="100" value="55"></div>
+<div class="control"><div class="control-row"><span>Hill Strength</span><span class="value" id="hillValue"></span></div><input id="hill" type="range" min="0" max="100" value="50"></div>
+<div class="control"><div class="control-row"><span>Terrain Roughness</span><span class="value" id="roughnessValue"></span></div><input id="roughness" type="range" min="0" max="100" value="48"></div>
+</div>
+<div class="section"><div class="section-title">ECOLOGY</div>
+<div class="control"><div class="control-row"><span>Forest Density</span><span class="value" id="forestValue"></span></div><input id="forest" type="range" min="0" max="100" value="68"></div>
+<div class="control"><div class="control-row"><span>River Tendency</span><span class="value" id="riverValue"></span></div><input id="river" type="range" min="0" max="100" value="62"></div>
+</div>
+<div class="section"><div class="section-title">CARTOGRAPHY</div>
+<div class="control"><div class="control-row"><span>Contour Density</span><span class="value" id="contourValue"></span></div><input id="contour" type="range" min="0" max="100" value="45"></div>
+</div>
+<div class="section"><div class="section-title">SEED</div><input id="seed" class="seed-box" value="TOCQUEVILLE-01">
+<button class="primary" id="generate">Generate Terrain</button><button id="randomSeed">Random Seed</button><button id="download">Download PNG</button><div class="status" id="status">Ready.</div></div>
+<div class="section"><div class="section-title">LEGEND</div>
+<div class="legend">
+<div class="legend-item"><div class="legend-color" style="background:#eef0e7"></div>High terrain</div>
+<div class="legend-item"><div class="legend-color" style="background:#aebaae"></div>Hills</div>
+<div class="legend-item"><div class="legend-color" style="background:#6f846e"></div>Forest</div>
+<div class="legend-item"><div class="legend-color" style="background:#8fa8a5"></div>Lowland</div>
+<div class="legend-item"><div class="legend-color" style="background:#526f7d"></div>River / lake</div>
+<div class="legend-item"><div class="legend-color" style="background:#d0c5a3"></div>Higher buildability</div>
+</div></div>
+<div class="info">v0.3 adds a real drainage pass, lakes, slope/buildability analysis, terrain-following water, live controls and stronger cartographic structure.<br><br><b>Principle:</b> 先有土地，城市才长出来。</div>
 </aside>
-
-<main class="canvas-wrap">
-    <canvas id="map" width="1200" height="850"></canvas>
-</main>
-
+<main class="canvas-wrap"><canvas id="map" width="1200" height="850"></canvas></main>
 </div>
 
 <script>
+const canvas=document.getElementById("map"),ctx=canvas.getContext("2d"),W=canvas.width,H=canvas.height;
+const GX=180,GY=128;
+let elevation=[],forest=[],water=[],buildability=[];
+const C=["mountain","hill","roughness","forest","river","contour"].reduce((o,k)=>(o[k]=document.getElementById(k),o),{});
+const V=["mountain","hill","roughness","forest","river","contour"].reduce((o,k)=>(o[k]=document.getElementById(k+"Value"),o),{});
 
-/* =========================================================
-   BASIC SETUP
-========================================================= */
+function hashString(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+function rand32(seed){return function(){let t=seed+=0x6D2B79F5;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
+function smooth(t){return t*t*(3-2*t)}
+function lerp(a,b,t){return a+(b-a)*t}
+function noise(seed,scale){function hash(x,y){let h=(Math.imul(x,374761393)+Math.imul(y,668265263)+seed*1442695041)|0;h=Math.imul(h^(h>>>13),1274126177);h^=h>>>16;return(h>>>0)/4294967296}
+return(x,y)=>{let gx=x/scale,gy=y/scale,x0=Math.floor(gx),y0=Math.floor(gy),tx=smooth(gx-x0),ty=smooth(gy-y0);return lerp(lerp(hash(x0,y0),hash(x0+1,y0),tx),lerp(hash(x0,y0+1),hash(x0+1,y0+1),tx),ty)}}
+function gauss(x,y,cx,cy,sx,sy){let dx=(x-cx)/sx,dy=(y-cy)/sy;return Math.exp(-(dx*dx+dy*dy))}
+function idx(x,y){return y*GX+x}
+function clamp(v,a=0,b=1){return Math.max(a,Math.min(b,v))}
+function neighbors(x,y){const a=[];for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++)if(dx||dy){let nx=x+dx,ny=y+dy;if(nx>=0&&ny>=0&&nx<GX&&ny<GY)a.push([nx,ny])}return a}
 
-const canvas = document.getElementById("map");
-const ctx = canvas.getContext("2d");
+function generateTerrain(){
+ const seedText=document.getElementById("seed").value||"TOCQUEVILLE";
+ const seed=hashString(seedText),rnd=rand32(seed);
+ const ms=+C.mountain.value/100,hs=+C.hill.value/100,rough=+C.roughness.value/100,fd=+C.forest.value/100,rs=+C.river.value/100;
+ const n1=noise(seed+11,58),n2=noise(seed+22,26),n3=noise(seed+33,10);
+ elevation=Array.from({length:GY},()=>Array(GX).fill(0));
+ forest=Array.from({length:GY},()=>Array(GX).fill(0));
+ water=Array.from({length:GY},()=>Array(GX).fill(0));
+ buildability=Array.from({length:GY},()=>Array(GX).fill(0));
+ let min=Infinity,max=-Infinity;
+ for(let y=0;y<GY;y++)for(let x=0;x<GX;x++){
+   let nx=x/GX,ny=y/GY,h=n1(x,y)*.34+n2(x,y)*(.18+rough*.2)+n3(x,y)*(.05+rough*.13);
+   let belt=Math.max(0,1-Math.abs(ny-(.22+Math.sin(nx*5.2)*.055))/.16);
+   h+=belt*n2(x+80,y+30)*ms*.76;
+   h+=(gauss(nx,ny,.31,.43,.18,.20)+gauss(nx,ny,.69,.38,.22,.18)+gauss(nx,ny,.55,.67,.24,.21))*hs*.38;
+   h-=Math.max(0,(ny-.68)/.32)*.22;
+   h-=gauss(nx,ny,.78,.48,.08,.42)*.22;
+   elevation[y][x]=h;min=Math.min(min,h);max=Math.max(max,h);
+ }
+ for(let y=0;y<GY;y++)for(let x=0;x<GX;x++)elevation[y][x]=(elevation[y][x]-min)/(max-min||1);
 
-const W = canvas.width;
-const H = canvas.height;
+ // Small hydraulic relaxation: removes tiny one-cell pits without destroying the generated shape.
+ for(let pass=0;pass<2;pass++)for(let y=1;y<GY-1;y++)for(let x=1;x<GX-1;x++){
+   let h=elevation[y][x],lo=Math.min(...neighbors(x,y).map(p=>elevation[p[1]][p[0]]));
+   if(h<lo) elevation[y][x]=(h+lo)/2;
+ }
 
-let elevation = [];
-let riverMask = [];
-let forestMask = [];
+ // Forest follows ecological suitability, not a rectangle.
+ for(let y=0;y<GY;y++)for(let x=0;x<GX;x++){
+   let h=elevation[y][x],nx=x/GX,ny=y/GY,f=noise(seed+77,24)(x+120,y+310)*fd;
+   if(h>.82)f*=.18;if(ny>.72)f*=.48;if(nx>.84)f*=.72;
+   forest[y][x]=clamp(f);
+ }
 
-const GRID_X = 180;
-const GRID_Y = 128;
+ // Drainage accumulation: every cell contributes runoff downhill.
+ const cells=[];
+ for(let y=1;y<GY-1;y++)for(let x=1;x<GX-1;x++)cells.push([x,y]);
+ cells.sort((a,b)=>elevation[b[1]][b[0]]-elevation[a[1]][a[0]]);
+ const flow=Array.from({length:GY},()=>Array(GX).fill(1));
+ const down=Array.from({length:GY},()=>Array(GX).fill(null));
+ for(const [x,y] of cells){let best=null,bh=elevation[y][x];for(const [nx,ny] of neighbors(x,y)){if(elevation[ny][nx]<bh){bh=elevation[ny][nx];best=[nx,ny]}}down[y][x]=best}
+ for(const [x,y] of cells){let d=down[y][x];if(d)flow[d[1]][d[0]]+=flow[y][x]*.94}
+ let maxFlow=1;for(let y=0;y<GY;y++)for(let x=0;x<GX;x++)maxFlow=Math.max(maxFlow,flow[y][x]);
 
-
-/* =========================================================
-   DOM
-========================================================= */
-
-const controls = {
-    mountain: document.getElementById("mountain"),
-    hill: document.getElementById("hill"),
-    roughness: document.getElementById("roughness"),
-    forest: document.getElementById("forest"),
-    river: document.getElementById("river"),
-    contour: document.getElementById("contour")
-};
-
-const values = {
-    mountain: document.getElementById("mountainValue"),
-    hill: document.getElementById("hillValue"),
-    roughness: document.getElementById("roughnessValue"),
-    forest: document.getElementById("forestValue"),
-    river: document.getElementById("riverValue"),
-    contour: document.getElementById("contourValue")
-};
-
-
-/* =========================================================
-   SEEDED RANDOM
-========================================================= */
-
-function hashString(str) {
-
-    let h = 2166136261;
-
-    for (let i = 0; i < str.length; i++) {
-        h ^= str.charCodeAt(i);
-        h = Math.imul(h, 16777619);
-    }
-
-    return h >>> 0;
+ // Water becomes visible where accumulated drainage is substantial and a river is plausible.
+ for(let y=0;y<GY;y++)for(let x=0;x<GX;x++){
+   let f=flow[y][x]/maxFlow;
+   if(f>0.018*(1.25-rs*.65))water[y][x]=clamp((f-.012)*42);
+ }
+ // Lakes in local depressions / high accumulation zones.
+ for(let y=1;y<GY-1;y++)for(let x=1;x<GX-1;x++){
+   let h=elevation[y][x],lo=Math.min(...neighbors(x,y).map(p=>elevation[p[1]][p[0]]));
+   if(h<=lo+.006 && flow[y][x]/maxFlow>.008 && h<.63)water[y][x]=Math.max(water[y][x],.75);
+ }
+ // Buildability: slope + elevation + water + forest constraints.
+ for(let y=1;y<GY-1;y++)for(let x=1;x<GX-1;x++){
+   let h=elevation[y][x],gx=Math.abs(elevation[y][x+1]-elevation[y][x-1]),gy=Math.abs(elevation[y+1][x]-elevation[y-1][x]),s=clamp((gx+gy)*2.4);
+   let b=1-s;
+   if(h>.78)b*=.48;if(h<.22)b*=.72;if(forest[y][x]>.7)b*=.68;if(water[y][x]>.22)b*=.08;
+   buildability[y][x]=clamp(b);
+ }
+ drawMap();
+ document.getElementById("status").textContent=`Generated · seed: ${seedText} · hydrology + buildability`;
 }
 
-function mulberry32(seed) {
-
-    return function() {
-
-        let t = seed += 0x6D2B79F5;
-
-        t = Math.imul(t ^ t >>> 15, t | 1);
-
-        t ^= t + Math.imul(
-            t ^ t >>> 7,
-            t | 61
-        );
-
-        return (
-            (t ^ t >>> 14) >>> 0
-        ) / 4294967296;
-    };
+function terrainColor(h){
+ if(h>.88)return[239,241,235];if(h>.76){let t=(h-.76)/.12;return[205-t*25,214-t*20,205-t*18]}
+ if(h>.58){let t=(h-.58)/.18;return[161-t*25,178-t*25,164-t*23]}
+ if(h>.36){let t=(h-.36)/.22;return[143-t*15,166-t*10,157-t*12]}
+ return[143-h/0.36*20,166-h/0.36*12,157-h/0.36*10]
 }
 
-
-/* =========================================================
-   VALUE NOISE
-========================================================= */
-
-function smooth(t) {
-    return t * t * (3 - 2 * t);
+function drawMap(){
+ ctx.clearRect(0,0,W,H);const cw=W/GX,ch=H/GY;
+ for(let y=0;y<GY;y++)for(let x=0;x<GX;x++){let c=terrainColor(elevation[y][x]);ctx.fillStyle=`rgb(${c[0]},${c[1]},${c[2]})`;ctx.fillRect(x*cw,y*ch,cw+1,ch+1)}
+ // Buildability tint: subtle, so terrain remains primary.
+ for(let y=0;y<GY;y++)for(let x=0;x<GX;x++){let b=buildability[y][x];if(b>.62){ctx.fillStyle=`rgba(208,197,163,${(b-.62)*.18})`;ctx.fillRect(x*cw,y*ch,cw+1,ch+1)}}
+ // Forest symbols.
+ for(let y=1;y<GY-1;y++)for(let x=1;x<GX-1;x++)if(forest[y][x]>.52&&(x*17+y*31)%7===0){let px=x*cw,py=y*ch,s=Math.max(1.5,cw*.7);ctx.beginPath();ctx.moveTo(px,py+s);ctx.lineTo(px+s/2,py);ctx.lineTo(px+s,py+s);ctx.closePath();ctx.fillStyle="rgba(59,82,63,.34)";ctx.fill()}
+ drawWater(cw,ch);drawContours(cw,ch);drawLabels();
 }
 
-function lerp(a, b, t) {
-    return a + (b - a) * t;
+function drawWater(cw,ch){
+ ctx.save();ctx.strokeStyle="rgba(65,95,108,.88)";ctx.lineCap="round";
+ for(let y=0;y<GY;y++)for(let x=0;x<GX;x++)if(water[y][x]>.16){
+   let w=water[y][x],px=x*cw+cw/2,py=y*ch+ch/2;
+   ctx.lineWidth=1+w*2.2;ctx.beginPath();
+   const r=neighbors(x,y).find(p=>water[p[1]][p[0]]>water[y][x]*.75);
+   if(r){ctx.moveTo(px,py);ctx.lineTo(r[0]*cw+cw/2,r[1]*ch+ch/2);ctx.stroke()}
+ }
+ // Draw lake patches after streams.
+ for(let y=1;y<GY-1;y++)for(let x=1;x<GX-1;x++)if(water[y][x]>.7){
+   ctx.fillStyle="rgba(82,112,125,.42)";ctx.fillRect(x*cw,y*ch,cw+1,ch+1);
+ }
+ ctx.restore();
 }
 
-function createNoise(seed, scale) {
-
-    const sizeX = Math.ceil(GRID_X / scale) + 3;
-    const sizeY = Math.ceil(GRID_Y / scale) + 3;
-
-    const rand = mulberry32(seed);
-
-    const grid = [];
-
-    for (let y = 0; y < sizeY; y++) {
-
-        grid[y] = [];
-
-        for (let x = 0; x < sizeX; x++) {
-            grid[y][x] = rand();
-        }
-    }
-
-    return function(x, y) {
-
-        const gx = x / scale;
-        const gy = y / scale;
-
-        const x0 = Math.floor(gx);
-        const y0 = Math.floor(gy);
-
-        const tx = smooth(gx - x0);
-        const ty = smooth(gy - y0);
-
-        const a = grid[y0][x0];
-        const b = grid[y0][x0 + 1];
-        const c = grid[y0 + 1][x0];
-        const d = grid[y0 + 1][x0 + 1];
-
-        return lerp(
-            lerp(a, b, tx),
-            lerp(c, d, tx),
-            ty
-        );
-    };
+function drawContours(cw,ch){
+ const levels=Math.max(6,Math.floor(8+(+C.contour.value/100)*18));ctx.save();ctx.strokeStyle="rgba(65,78,70,.26)";ctx.lineWidth=.8;
+ for(let k=1;k<levels;k++){let target=k/levels;ctx.beginPath();
+  for(let y=0;y<GY-1;y++)for(let x=0;x<GX-1;x++){let h=elevation[y][x],hx=elevation[y][x+1],hy=elevation[y+1][x];
+   if((h<target)!=(hx<target)){let px=x*cw+cw/2,py=y*ch;ctx.moveTo(px,py);ctx.lineTo(px,py+ch*.55)}
+   if((h<target)!=(hy<target)){let px=x*cw,py=y*ch+ch/2;ctx.moveTo(px,py);ctx.lineTo(px+cw*.55,py)}
+  }ctx.stroke()
+ }ctx.restore();
 }
 
-
-/* =========================================================
-   TERRAIN GENERATION
-========================================================= */
-
-function generateTerrain() {
-
-    const seedText =
-        document.getElementById("seed").value ||
-        "TOCQUEVILLE";
-
-    const seed = hashString(seedText);
-
-    const rand = mulberry32(seed);
-
-    const mountainStrength =
-        Number(controls.mountain.value) / 100;
-
-    const hillStrength =
-        Number(controls.hill.value) / 100;
-
-    const roughness =
-        Number(controls.roughness.value) / 100;
-
-    const forestDensity =
-        Number(controls.forest.value) / 100;
-
-    const riverStrength =
-        Number(controls.river.value) / 100;
-
-    const noiseLarge =
-        createNoise(seed + 11, 55);
-
-    const noiseMedium =
-        createNoise(seed + 22, 25);
-
-    const noiseSmall =
-        createNoise(seed + 33, 10);
-
-    elevation = [];
-    forestMask = [];
-    riverMask = [];
-
-    let min = Infinity;
-    let max = -Infinity;
-
-    /*
-        Generate elevation field.
-
-        Important:
-        mountains are elongated rather than
-        simple circular blobs.
-    */
-
-    for (let y = 0; y < GRID_Y; y++) {
-
-        elevation[y] = [];
-        forestMask[y] = [];
-        riverMask[y] = [];
-
-        for (let x = 0; x < GRID_X; x++) {
-
-            const nx = x / GRID_X;
-            const ny = y / GRID_Y;
-
-            let h = 0;
-
-            h += noiseLarge(x, y) * 0.38;
-
-            h += noiseMedium(x, y) *
-                 (0.18 + roughness * 0.20);
-
-            h += noiseSmall(x, y) *
-                 (0.05 + roughness * 0.12);
-
-            /*
-                Northern mountain belt.
-            */
-
-            const mountainCenter =
-                0.22 +
-                Math.sin(nx * 5.2) * 0.055;
-
-            const mountainDistance =
-                Math.abs(ny - mountainCenter);
-
-            const belt =
-                Math.max(
-                    0,
-                    1 - mountainDistance / 0.16
-                );
-
-            /*
-                Broken mountain ridges.
-            */
-
-            const ridgeNoise =
-                noiseMedium(
-                    x + 80,
-                    y + 30
-                );
-
-            h +=
-                belt *
-                ridgeNoise *
-                mountainStrength *
-                0.72;
-
-            /*
-                Several large hills.
-            */
-
-            const hill1 =
-                gaussian(
-                    nx,
-                    ny,
-                    0.32,
-                    0.43,
-                    0.18,
-                    0.20
-                );
-
-            const hill2 =
-                gaussian(
-                    nx,
-                    ny,
-                    0.69,
-                    0.38,
-                    0.22,
-                    0.18
-                );
-
-            const hill3 =
-                gaussian(
-                    nx,
-                    ny,
-                    0.55,
-                    0.67,
-                    0.24,
-                    0.21
-                );
-
-            h +=
-                (hill1 + hill2 + hill3) *
-                hillStrength *
-                0.38;
-
-            /*
-                Southern lowland.
-            */
-
-            const south =
-                Math.max(
-                    0,
-                    (ny - 0.68) / 0.32
-                );
-
-            h -= south * 0.22;
-
-            /*
-                Slight eastern valley.
-            */
-
-            const valley =
-                gaussian(
-                    nx,
-                    ny,
-                    0.78,
-                    0.48,
-                    0.08,
-                    0.42
-                );
-
-            h -= valley * 0.22;
-
-            elevation[y][x] = h;
-
-            min = Math.min(min, h);
-            max = Math.max(max, h);
-        }
-    }
-
-
-    /*
-        Normalize.
-    */
-
-    for (let y = 0; y < GRID_Y; y++) {
-
-        for (let x = 0; x < GRID_X; x++) {
-
-            elevation[y][x] =
-                (elevation[y][x] - min) /
-                (max - min);
-        }
-    }
-
-
-    /*
-        Forest mask.
-
-        Forest favors:
-        - moderate elevation
-        - rough terrain
-        - northern/western areas
-
-        Forest avoids:
-        - very high mountain tops
-        - very low southern farmland
-    */
-
-    for (let y = 0; y < GRID_Y; y++) {
-
-        for (let x = 0; x < GRID_X; x++) {
-
-            const h = elevation[y][x];
-
-            const nx = x / GRID_X;
-            const ny = y / GRID_Y;
-
-            const forestNoise =
-                noiseMedium(
-                    x + 150,
-                    y + 250
-                );
-
-            let forest =
-                forestNoise *
-                forestDensity;
-
-            if (h > 0.82) {
-                forest *= 0.15;
-            }
-
-            if (ny > 0.72) {
-                forest *= 0.48;
-            }
-
-            if (nx > 0.82) {
-                forest *= 0.72;
-            }
-
-            forestMask[y][x] =
-                Math.max(
-                    0,
-                    Math.min(1, forest)
-                );
-        }
-    }
-
-
-    /*
-        River source candidates:
-        high elevation + river tendency.
-    */
-
-    const sources = [];
-
-    for (let i = 0; i < 12; i++) {
-
-        const sx =
-            Math.floor(
-                rand() * GRID_X
-            );
-
-        const sy =
-            Math.floor(
-                rand() * GRID_Y * 0.62
-            );
-
-        if (
-            elevation[sy][sx] >
-            0.65 * (0.65 + riverStrength * 0.35)
-        ) {
-
-            sources.push({
-                x: sx,
-                y: sy
-            });
-        }
-    }
-
-
-    /*
-        River routing follows local downhill direction.
-    */
-
-    for (const source of sources) {
-
-        let x = source.x;
-        let y = source.y;
-
-        const visited = new Set();
-
-        for (let step = 0; step < 700; step++) {
-
-            if (
-                x <= 1 ||
-                y <= 1 ||
-                x >= GRID_X - 2 ||
-                y >= GRID_Y - 2
-            ) {
-                break;
-            }
-
-            const key = x + "," + y;
-
-            if (visited.has(key)) {
-                break;
-            }
-
-            visited.add(key);
-
-            riverMask[y][x] = 1;
-
-            let bestX = x;
-            let bestY = y;
-            let bestH = elevation[y][x];
-
-            /*
-                Look around current cell.
-            */
-
-            for (let dy = -1; dy <= 1; dy++) {
-
-                for (let dx = -1; dx <= 1; dx++) {
-
-                    if (dx === 0 && dy === 0) {
-                        continue;
-                    }
-
-                    const nx = x + dx;
-                    const ny = y + dy;
-
-                    const nh =
-                        elevation[ny][nx];
-
-                    if (nh < bestH) {
-                        bestH = nh;
-                        bestX = nx;
-                        bestY = ny;
-                    }
-                }
-            }
-
-            if (
-                bestX === x &&
-                bestY === y
-            ) {
-                break;
-            }
-
-            x = bestX;
-            y = bestY;
-
-            /*
-                More likely to continue
-                when river tendency is high.
-            */
-
-            if (
-                rand() >
-                0.985 +
-                riverStrength * 0.014
-            ) {
-                break;
-            }
-        }
-    }
-
-
-    drawMap();
-
-    document.getElementById("status").textContent =
-        "Generated · seed: " + seedText;
+function drawLabels(){
+ ctx.save();ctx.fillStyle="rgba(37,53,58,.82)";ctx.font="600 15px 'Segoe UI',sans-serif";ctx.fillText("SNOWFIELD REGION",42,42);
+ ctx.font="12px 'Segoe UI',sans-serif";ctx.fillStyle="rgba(37,53,58,.65)";ctx.fillText("boreal forest · uplands · valleys · drainage",42,62);
+ const ax=W-62,ay=52;ctx.strokeStyle="rgba(35,48,52,.8)";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(ax,ay+32);ctx.lineTo(ax,ay);ctx.stroke();ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(ax-5,ay+10);ctx.moveTo(ax,ay);ctx.lineTo(ax+5,ay+10);ctx.stroke();ctx.font="bold 12px sans-serif";ctx.fillText("N",ax-4,ay-7);
+ ctx.beginPath();ctx.moveTo(42,H-38);ctx.lineTo(142,H-38);ctx.stroke();ctx.font="10px sans-serif";ctx.fillText("terrain reference",42,H-46);ctx.restore();
 }
 
-
-/* =========================================================
-   GAUSSIAN HILL
-========================================================= */
-
-function gaussian(
-    x,
-    y,
-    cx,
-    cy,
-    sx,
-    sy
-) {
-
-    const dx =
-        (x - cx) / sx;
-
-    const dy =
-        (y - cy) / sy;
-
-    return Math.exp(
-        -(dx * dx + dy * dy)
-    );
-}
-
-
-/* =========================================================
-   TERRAIN COLOR
-========================================================= */
-
-function terrainColor(h) {
-
-    if (h > 0.88) {
-        return [239, 241, 235];
-    }
-
-    if (h > 0.76) {
-
-        const t =
-            (h - 0.76) / 0.12;
-
-        return [
-            205 - t * 25,
-            214 - t * 20,
-            205 - t * 18
-        ];
-    }
-
-    if (h > 0.58) {
-
-        const t =
-            (h - 0.58) / 0.18;
-
-        return [
-            161 - t * 25,
-            178 - t * 25,
-            164 - t * 23
-        ];
-    }
-
-    if (h > 0.36) {
-
-        const t =
-            (h - 0.36) / 0.22;
-
-        return [
-            143 - t * 15,
-            166 - t * 10,
-            157 - t * 12
-        ];
-    }
-
-    const t =
-        h / 0.36;
-
-    return [
-        143 - t * 20,
-        166 - t * 12,
-        157 - t * 10
-    ];
-}
-
-
-/* =========================================================
-   DRAW TERRAIN
-========================================================= */
-
-function drawMap() {
-
-    ctx.clearRect(
-        0,
-        0,
-        W,
-        H
-    );
-
-    const cellW =
-        W / GRID_X;
-
-    const cellH =
-        H / GRID_Y;
-
-
-    /*
-        Base terrain.
-    */
-
-    for (let y = 0; y < GRID_Y; y++) {
-
-        for (let x = 0; x < GRID_X; x++) {
-
-            const h =
-                elevation[y][x];
-
-            const c =
-                terrainColor(h);
-
-            ctx.fillStyle =
-                `rgb(${c[0]},${c[1]},${c[2]})`;
-
-            ctx.fillRect(
-                x * cellW,
-                y * cellH,
-                cellW + 1,
-                cellH + 1
-            );
-        }
-    }
-
-
-    /*
-        Forest texture.
-    */
-
-    ctx.save();
-
-    for (let y = 1; y < GRID_Y - 1; y++) {
-
-        for (let x = 1; x < GRID_X - 1; x++) {
-
-            if (forestMask[y][x] < 0.52) {
-                continue;
-            }
-
-            if (
-                (x * 17 + y * 31) % 7 !== 0
-            ) {
-                continue;
-            }
-
-            const px =
-                x * cellW;
-
-            const py =
-                y * cellH;
-
-            const size =
-                Math.max(
-                    1.5,
-                    cellW * 0.7
-                );
-
-            ctx.beginPath();
-
-            ctx.moveTo(
-                px,
-                py + size
-            );
-
-            ctx.lineTo(
-                px + size / 2,
-                py
-            );
-
-            ctx.lineTo(
-                px + size,
-                py + size
-            );
-
-            ctx.closePath();
-
-            ctx.fillStyle =
-                "rgba(59,82,63,.34)";
-
-            ctx.fill();
-        }
-    }
-
-    ctx.restore();
-
-
-    /*
-        Rivers.
-    */
-
-    drawRivers(
-        cellW,
-        cellH
-    );
-
-
-    /*
-        Contours.
-    */
-
-    drawContours(
-        cellW,
-        cellH
-    );
-
-
-    /*
-        Map frame.
-    */
-
-    ctx.strokeStyle =
-        "rgba(30,45,48,.8)";
-
-    ctx.lineWidth = 2;
-
-    ctx.strokeRect(
-        1,
-        1,
-        W - 2,
-        H - 2
-    );
-
-
-    /*
-        Cartographic labels.
-    */
-
-    drawLabels();
-}
-
-
-/* =========================================================
-   RIVERS
-========================================================= */
-
-function drawRivers(
-    cellW,
-    cellH
-) {
-
-    ctx.save();
-
-    ctx.strokeStyle =
-        "rgba(65,95,108,.86)";
-
-    ctx.lineWidth = 2.1;
-
-    ctx.lineCap = "round";
-
-    for (let y = 1; y < GRID_Y - 1; y++) {
-
-        for (let x = 1; x < GRID_X - 1; x++) {
-
-            if (!riverMask[y][x]) {
-                continue;
-            }
-
-            /*
-                Only draw a river segment
-                when the next cell also belongs
-                to the river.
-            */
-
-            if (
-                riverMask[y][x + 1] ||
-                riverMask[y + 1][x]
-            ) {
-
-                const px =
-                    x * cellW +
-                    cellW / 2;
-
-                const py =
-                    y * cellH +
-                    cellH / 2;
-
-                ctx.beginPath();
-
-                ctx.moveTo(
-                    px,
-                    py
-                );
-
-                if (riverMask[y][x + 1]) {
-
-                    ctx.lineTo(
-                        px + cellW,
-                        py
-                    );
-
-                } else {
-
-                    ctx.lineTo(
-                        px,
-                        py + cellH
-                    );
-                }
-
-                ctx.stroke();
-            }
-        }
-    }
-
-    ctx.restore();
-}
-
-
-/* =========================================================
-   CONTOURS
-========================================================= */
-
-function drawContours(
-    cellW,
-    cellH
-) {
-
-    const density =
-        Number(controls.contour.value) / 100;
-
-    const levels =
-        Math.max(
-            5,
-            Math.floor(
-                7 + density * 16
-            )
-        );
-
-    ctx.save();
-
-    ctx.strokeStyle =
-        "rgba(65,78,70,.28)";
-
-    ctx.lineWidth = 0.8;
-
-    for (let level = 0; level <= levels; level++) {
-
-        const target =
-            level / levels;
-
-        ctx.beginPath();
-
-        for (let y = 0; y < GRID_Y - 1; y++) {
-
-            for (let x = 0; x < GRID_X - 1; x++) {
-
-                const h =
-                    elevation[y][x];
-
-                const h2 =
-                    elevation[y][x + 1];
-
-                const h3 =
-                    elevation[y + 1][x];
-
-                const crossesX =
-                    (h < target && h2 >= target) ||
-                    (h >= target && h2 < target);
-
-                const crossesY =
-                    (h < target && h3 >= target) ||
-                    (h >= target && h3 < target);
-
-                if (crossesX) {
-
-                    const px =
-                        x * cellW +
-                        cellW / 2;
-
-                    const py =
-                        y * cellH;
-
-                    ctx.moveTo(
-                        px,
-                        py
-                    );
-
-                    ctx.lineTo(
-                        px,
-                        py + cellH * 0.55
-                    );
-                }
-
-                if (crossesY) {
-
-                    const px =
-                        x * cellW;
-
-                    const py =
-                        y * cellH +
-                        cellH / 2;
-
-                    ctx.moveTo(
-                        px,
-                        py
-                    );
-
-                    ctx.lineTo(
-                        px + cellW * 0.55,
-                        py
-                    );
-                }
-            }
-        }
-
-        ctx.stroke();
-    }
-
-    ctx.restore();
-}
-
-
-/* =========================================================
-   MAP LABELS
-========================================================= */
-
-function drawLabels() {
-
-    ctx.save();
-
-    ctx.fillStyle =
-        "rgba(37,53,58,.82)";
-
-    ctx.font =
-        "600 15px 'Segoe UI', sans-serif";
-
-    ctx.fillText(
-        "SNOWFIELD REGION",
-        42,
-        42
-    );
-
-    ctx.font =
-        "12px 'Segoe UI', sans-serif";
-
-    ctx.fillStyle =
-        "rgba(37,53,58,.65)";
-
-    ctx.fillText(
-        "Northern uplands / boreal forest",
-        42,
-        62
-    );
-
-
-    /*
-        North arrow.
-    */
-
-    const ax = W - 62;
-    const ay = 52;
-
-    ctx.strokeStyle =
-        "rgba(35,48,52,.8)";
-
-    ctx.lineWidth = 2;
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-        ax,
-        ay + 32
-    );
-
-    ctx.lineTo(
-        ax,
-        ay
-    );
-
-    ctx.stroke();
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-        ax,
-        ay
-    );
-
-    ctx.lineTo(
-        ax - 5,
-        ay + 10
-    );
-
-    ctx.moveTo(
-        ax,
-        ay
-    );
-
-    ctx.lineTo(
-        ax + 5,
-        ay + 10
-    );
-
-    ctx.stroke();
-
-    ctx.font =
-        "bold 12px sans-serif";
-
-    ctx.fillText(
-        "N",
-        ax - 4,
-        ay - 7
-    );
-
-
-    /*
-        Scale-like indicator.
-    */
-
-    const sx = 42;
-    const sy = H - 38;
-
-    ctx.strokeStyle =
-        "rgba(35,48,52,.7)";
-
-    ctx.lineWidth = 2;
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-        sx,
-        sy
-    );
-
-    ctx.lineTo(
-        sx + 100,
-        sy
-    );
-
-    ctx.stroke();
-
-    ctx.font =
-        "10px sans-serif";
-
-    ctx.fillText(
-        "terrain reference",
-        sx,
-        sy - 8
-    );
-
-    ctx.restore();
-}
-
-
-/* =========================================================
-   UI
-========================================================= */
-
-function updateValues() {
-
-    for (const key in controls) {
-
-        values[key].textContent =
-            controls[key].value;
-    }
-}
-
-
-/*
-    IMPORTANT:
-
-    Sliders update their displayed numbers
-    immediately.
-
-    The terrain itself is regenerated only
-    when Generate is clicked.
-*/
-
-for (const key in controls) {
-
-    controls[key].addEventListener(
-        "input",
-        updateValues
-    );
-}
-
-
-document
-    .getElementById("generate")
-    .addEventListener(
-        "click",
-        generateTerrain
-    );
-
-
-document
-    .getElementById("randomSeed")
-    .addEventListener(
-        "click",
-        () => {
-
-            const random =
-                Math.random()
-                    .toString(36)
-                    .substring(2, 10)
-                    .toUpperCase();
-
-            document
-                .getElementById("seed")
-                .value =
-                "TOC-" + random;
-
-            generateTerrain();
-        }
-    );
-
-
-document
-    .getElementById("download")
-    .addEventListener(
-        "click",
-        () => {
-
-            const link =
-                document.createElement("a");
-
-            link.download =
-                "virellus-terrain.png";
-
-            link.href =
-                canvas.toDataURL(
-                    "image/png"
-                );
-
-            link.click();
-        }
-    );
-
-
-/* =========================================================
-   INITIAL GENERATION
-========================================================= */
-
-updateValues();
-
-generateTerrain();
-
+function updateValues(){for(const k in C)V[k].textContent=C[k].value}
+let timer;
+for(const k in C)C[k].addEventListener("input",()=>{updateValues();clearTimeout(timer);timer=setTimeout(generateTerrain,180)});
+document.getElementById("generate").onclick=generateTerrain;
+document.getElementById("randomSeed").onclick=()=>{document.getElementById("seed").value="TOC-"+Math.random().toString(36).slice(2,10).toUpperCase();generateTerrain()};
+document.getElementById("download").onclick=()=>{const a=document.createElement("a");a.download="virellus-terrain-v0.3.png";a.href=canvas.toDataURL("image/png");a.click()};
+updateValues();generateTerrain();
 </script>
-
 </body>
 </html>
