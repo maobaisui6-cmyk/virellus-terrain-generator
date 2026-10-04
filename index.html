@@ -413,24 +413,23 @@ function smooth(t) {
 function lerp(a, b, t) {
     return a + (b - a) * t;
 }
+
 function createNoise(seed, scale) {
 
-    function hash2D(ix, iy) {
+    const sizeX = Math.ceil(GRID_X / scale) + 3;
+    const sizeY = Math.ceil(GRID_Y / scale) + 3;
 
-        let h =
-            (Math.imul(ix, 374761393) +
-             Math.imul(iy, 668265263) +
-             seed * 1442695041) | 0;
+    const rand = mulberry32(seed);
 
-        h =
-            Math.imul(
-                h ^ (h >>> 13),
-                1274126177
-            );
+    const grid = [];
 
-        h ^= h >>> 16;
+    for (let y = 0; y < sizeY; y++) {
 
-        return (h >>> 0) / 4294967296;
+        grid[y] = [];
+
+        for (let x = 0; x < sizeX; x++) {
+            grid[y][x] = rand();
+        }
     }
 
     return function(x, y) {
@@ -444,10 +443,10 @@ function createNoise(seed, scale) {
         const tx = smooth(gx - x0);
         const ty = smooth(gy - y0);
 
-        const a = hash2D(x0, y0);
-        const b = hash2D(x0 + 1, y0);
-        const c = hash2D(x0, y0 + 1);
-        const d = hash2D(x0 + 1, y0 + 1);
+        const a = grid[y0][x0];
+        const b = grid[y0][x0 + 1];
+        const c = grid[y0 + 1][x0];
+        const d = grid[y0 + 1][x0 + 1];
 
         return lerp(
             lerp(a, b, tx),
@@ -456,6 +455,7 @@ function createNoise(seed, scale) {
         );
     };
 }
+
 
 /* =========================================================
    TERRAIN GENERATION
