@@ -1,1 +1,1423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Virellus Terrain Generator</title>
 
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #171b18;
+    color: #e7eadf;
+    font-family:
+        "Segoe UI",
+        "Microsoft YaHei",
+        sans-serif;
+    overflow: hidden;
+}
+
+#app {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+}
+
+#panel {
+    width: 310px;
+    padding: 24px;
+    background: #202520;
+    border-right: 1px solid #3b433b;
+    overflow-y: auto;
+}
+
+h1 {
+    margin: 0 0 6px;
+    font-size: 22px;
+    letter-spacing: 0.5px;
+}
+
+.subtitle {
+    color: #9ca596;
+    font-size: 13px;
+    margin-bottom: 24px;
+}
+
+.section {
+    margin-bottom: 22px;
+}
+
+.section-title {
+    font-size: 12px;
+    color: #aeb8a6;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+}
+
+.control {
+    margin-bottom: 14px;
+}
+
+.control label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    margin-bottom: 6px;
+}
+
+.value {
+    color: #c9d5b7;
+}
+
+input[type="range"] {
+    width: 100%;
+}
+
+input[type="number"],
+input[type="text"] {
+    width: 100%;
+    padding: 9px 10px;
+    background: #151915;
+    color: #e7eadf;
+    border: 1px solid #414941;
+    border-radius: 5px;
+}
+
+button {
+    width: 100%;
+    border: 0;
+    border-radius: 6px;
+    padding: 11px 12px;
+    margin-top: 7px;
+    cursor: pointer;
+    background: #d9dfc8;
+    color: #1b211b;
+    font-weight: 600;
+}
+
+button:hover {
+    background: #eef2df;
+}
+
+.secondary {
+    background: #303830;
+    color: #d9dfd1;
+}
+
+.secondary:hover {
+    background: #3b453b;
+}
+
+#mapArea {
+    position: relative;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+        radial-gradient(circle at center, #273027 0%, #151815 80%);
+    overflow: hidden;
+}
+
+#terrainCanvas {
+    width: min(92vw, 1100px);
+    height: min(92vh, 820px);
+    image-rendering: auto;
+    box-shadow: 0 20px 70px rgba(0,0,0,.45);
+}
+
+#info {
+    position: absolute;
+    left: 24px;
+    bottom: 20px;
+    padding: 10px 13px;
+    background: rgba(22,26,22,.84);
+    border: 1px solid #3a433a;
+    border-radius: 5px;
+    font-size: 12px;
+    color: #b9c0b4;
+}
+
+#north {
+    position: absolute;
+    top: 22px;
+    right: 26px;
+    width: 44px;
+    height: 44px;
+    border: 1px solid #798276;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    background: rgba(25,29,25,.7);
+}
+
+.legend {
+    font-size: 11px;
+    line-height: 1.7;
+    color: #aeb5a9;
+}
+
+.swatch {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin-right: 6px;
+    vertical-align: -2px;
+    border: 1px solid rgba(255,255,255,.15);
+}
+</style>
+</head>
+
+<body>
+
+<div id="app">
+
+    <aside id="panel">
+
+        <h1>Virellus Terrain</h1>
+        <div class="subtitle">
+            维瑞利斯地形母版生成器 · v0.1
+        </div>
+
+        <div class="section">
+
+            <div class="section-title">Seed</div>
+
+            <div class="control">
+                <label>
+                    <span>随机种子</span>
+                </label>
+
+                <input
+                    id="seed"
+                    type="text"
+                    value="TOCQUEVILLE-01"
+                >
+            </div>
+
+        </div>
+
+
+        <div class="section">
+
+            <div class="section-title">Terrain</div>
+
+            <div class="control">
+                <label>
+                    <span>山地强度</span>
+                    <span class="value" id="mountainValue">65</span>
+                </label>
+
+                <input
+                    id="mountain"
+                    type="range"
+                    min="0"
+                    max="100"
+                    value="65"
+                >
+            </div>
+
+
+            <div class="control">
+                <label>
+                    <span>丘陵强度</span>
+                    <span class="value" id="hillValue">48</span>
+                </label>
+
+                <input
+                    id="hill"
+                    type="range"
+                    min="0"
+                    max="100"
+                    value="48"
+                >
+            </div>
+
+
+            <div class="control">
+                <label>
+                    <span>地形起伏</span>
+                    <span class="value" id="roughValue">55</span>
+                </label>
+
+                <input
+                    id="rough"
+                    type="range"
+                    min="0"
+                    max="100"
+                    value="55"
+                >
+            </div>
+
+        </div>
+
+
+        <div class="section">
+
+            <div class="section-title">Ecology</div>
+
+            <div class="control">
+                <label>
+                    <span>森林密度</span>
+                    <span class="value" id="forestValue">72</span>
+                </label>
+
+                <input
+                    id="forest"
+                    type="range"
+                    min="0"
+                    max="100"
+                    value="72"
+                >
+            </div>
+
+
+            <div class="control">
+                <label>
+                    <span>河流倾向</span>
+                    <span class="value" id="riverValue">52</span>
+                </label>
+
+                <input
+                    id="river"
+                    type="range"
+                    min="0"
+                    max="100"
+                    value="52"
+                >
+            </div>
+
+        </div>
+
+
+        <div class="section">
+
+            <div class="section-title">Cartography</div>
+
+            <div class="control">
+                <label>
+                    <span>等高线密度</span>
+                    <span class="value" id="contourValue">55</span>
+                </label>
+
+                <input
+                    id="contour"
+                    type="range"
+                    min="0"
+                    max="100"
+                    value="55"
+                >
+            </div>
+
+        </div>
+
+
+        <button id="generate">
+            ⛰ 生成地形
+        </button>
+
+        <button id="randomSeed" class="secondary">
+            ↻ 随机种子
+        </button>
+
+        <button id="download" class="secondary">
+            ↓ 导出 PNG
+        </button>
+
+
+        <div class="section" style="margin-top:25px">
+
+            <div class="section-title">图例</div>
+
+            <div class="legend">
+                <div>
+                    <span class="swatch" style="background:#27382a"></span>
+                    深林
+                </div>
+
+                <div>
+                    <span class="swatch" style="background:#68745a"></span>
+                    林地
+                </div>
+
+                <div>
+                    <span class="swatch" style="background:#a7aa8d"></span>
+                    丘陵
+                </div>
+
+                <div>
+                    <span class="swatch" style="background:#d1c9a5"></span>
+                    高地
+                </div>
+
+                <div>
+                    <span class="swatch" style="background:#8ea9a2"></span>
+                    水系
+                </div>
+            </div>
+
+        </div>
+
+    </aside>
+
+
+    <main id="mapArea">
+
+        <canvas
+            id="terrainCanvas"
+            width="1000"
+            height="760">
+        </canvas>
+
+        <div id="north">
+            N
+        </div>
+
+        <div id="info">
+            Terrain layer · Snowfield Region prototype
+        </div>
+
+    </main>
+
+</div>
+
+
+<script>
+
+const canvas = document.getElementById("terrainCanvas");
+const ctx = canvas.getContext("2d");
+
+const W = canvas.width;
+const H = canvas.height;
+
+
+/* -------------------------------------------------
+   Seeded random
+------------------------------------------------- */
+
+function hashString(str) {
+
+    let h = 2166136261;
+
+    for (let i = 0; i < str.length; i++) {
+
+        h ^= str.charCodeAt(i);
+        h +=
+            (h << 1) +
+            (h << 4) +
+            (h << 7) +
+            (h << 8) +
+            (h << 24);
+
+    }
+
+    return h >>> 0;
+}
+
+
+function mulberry32(a) {
+
+    return function() {
+
+        let t = a += 0x6D2B79F5;
+
+        t = Math.imul(
+            t ^ t >>> 15,
+            t | 1
+        );
+
+        t ^= t +
+            Math.imul(
+                t ^ t >>> 7,
+                t | 61
+            );
+
+        return (
+            (t ^ t >>> 14) >>> 0
+        ) / 4294967296;
+
+    };
+
+}
+
+
+/* -------------------------------------------------
+   Noise
+------------------------------------------------- */
+
+function createNoise(seed) {
+
+    const rand = mulberry32(hashString(seed));
+
+    const gridSize = 64;
+
+    const grid = [];
+
+    for (let y = 0; y <= gridSize; y++) {
+
+        grid[y] = [];
+
+        for (let x = 0; x <= gridSize; x++) {
+
+            grid[y][x] = rand();
+
+        }
+
+    }
+
+
+    function smooth(t) {
+        return t * t * (3 - 2 * t);
+    }
+
+
+    return function(x, y) {
+
+        x *= gridSize;
+        y *= gridSize;
+
+        const x0 = Math.floor(x);
+        const y0 = Math.floor(y);
+
+        const x1 = x0 + 1;
+        const y1 = y0 + 1;
+
+        const sx = smooth(x - x0);
+        const sy = smooth(y - y0);
+
+        const a = grid[y0][x0];
+        const b = grid[y0][x1];
+        const c = grid[y1][x0];
+        const d = grid[y1][x1];
+
+        const ab = a + (b - a) * sx;
+        const cd = c + (d - c) * sx;
+
+        return ab + (cd - ab) * sy;
+
+    };
+
+}
+
+
+/* -------------------------------------------------
+   Fractal terrain
+------------------------------------------------- */
+
+function fractalNoise(noise, x, y) {
+
+    let value = 0;
+    let amplitude = 1;
+    let frequency = 1;
+    let total = 0;
+
+    for (let i = 0; i < 5; i++) {
+
+        value += noise(
+            (x * frequency) % 1,
+            (y * frequency) % 1
+        ) * amplitude;
+
+        total += amplitude;
+
+        amplitude *= 0.5;
+        frequency *= 2;
+
+    }
+
+    return value / total;
+
+}
+
+
+/* -------------------------------------------------
+   Gaussian mountain / hill forms
+------------------------------------------------- */
+
+function gaussian(x, y, cx, cy, radius, power) {
+
+    const dx = x - cx;
+    const dy = y - cy;
+
+    const d =
+        Math.sqrt(dx * dx + dy * dy) /
+        radius;
+
+    return Math.max(
+        0,
+        1 - Math.pow(d, power)
+    );
+
+}
+
+
+/* -------------------------------------------------
+   Generate
+------------------------------------------------- */
+
+function generateTerrain() {
+
+    const seed =
+        document.getElementById("seed").value;
+
+    const mountain =
+        Number(document.getElementById("mountain").value) / 100;
+
+    const hill =
+        Number(document.getElementById("hill").value) / 100;
+
+    const rough =
+        Number(document.getElementById("rough").value) / 100;
+
+    const forest =
+        Number(document.getElementById("forest").value) / 100;
+
+    const river =
+        Number(document.getElementById("river").value) / 100;
+
+    const contour =
+        Number(document.getElementById("contour").value) / 100;
+
+
+    const noise =
+        createNoise(seed);
+
+
+    const image =
+        ctx.createImageData(W, H);
+
+
+    const elevation =
+        new Float32Array(W * H);
+
+
+    /*
+       Generate large-scale terrain first.
+       This is deliberately NOT a flat random texture.
+    */
+
+    for (let y = 0; y < H; y++) {
+
+        for (let x = 0; x < W; x++) {
+
+            const nx = x / W;
+            const ny = y / H;
+
+
+            let e =
+                fractalNoise(
+                    noise,
+                    nx * 0.9,
+                    ny * 0.9
+                );
+
+
+            /*
+               Large northern mountain system.
+            */
+
+            const northMountain =
+                gaussian(
+                    nx,
+                    ny,
+                    0.23,
+                    0.13,
+                    0.42,
+                    1.8
+                );
+
+
+            const northRidge =
+                gaussian(
+                    nx,
+                    ny,
+                    0.62,
+                    0.20,
+                    0.30,
+                    2.0
+                );
+
+
+            /*
+               Eastern hills.
+            */
+
+            const eastHill =
+                gaussian(
+                    nx,
+                    ny,
+                    0.86,
+                    0.46,
+                    0.35,
+                    2.0
+                );
+
+
+            /*
+               Western forest hills.
+            */
+
+            const westHill =
+                gaussian(
+                    nx,
+                    ny,
+                    0.10,
+                    0.55,
+                    0.30,
+                    2.2
+                );
+
+
+            e +=
+                northMountain *
+                mountain *
+                0.65;
+
+            e +=
+                northRidge *
+                mountain *
+                0.50;
+
+            e +=
+                (eastHill + westHill) *
+                hill *
+                0.25;
+
+
+            /*
+               Smaller terrain variation.
+            */
+
+            e +=
+                fractalNoise(
+                    noise,
+                    nx * 2.8 + 0.13,
+                    ny * 2.8 + 0.21
+                ) *
+                rough *
+                0.18;
+
+
+            elevation[y * W + x] =
+                Math.min(
+                    1,
+                    Math.max(0, e)
+                );
+
+        }
+
+    }
+
+
+    /*
+       Base terrain rendering.
+    */
+
+    for (let y = 0; y < H; y++) {
+
+        for (let x = 0; x < W; x++) {
+
+            const i =
+                y * W + x;
+
+            let e =
+                elevation[i];
+
+
+            /*
+               Slope approximation.
+            */
+
+            const ex =
+                elevation[
+                    y * W +
+                    Math.min(W - 1, x + 1)
+                ] - e;
+
+            const ey =
+                elevation[
+                    Math.min(H - 1, y + 1) * W +
+                    x
+                ] - e;
+
+            const slope =
+                Math.min(
+                    1,
+                    Math.sqrt(
+                        ex * ex +
+                        ey * ey
+                    ) * 7
+                );
+
+
+            /*
+               Snowfield palette.
+            */
+
+            let r, g, b;
+
+
+            if (e < 0.28) {
+
+                r = 104;
+                g = 126;
+                b = 92;
+
+            }
+            else if (e < 0.46) {
+
+                r = 111;
+                g = 126;
+                b = 91;
+
+            }
+            else if (e < 0.62) {
+
+                r = 145;
+                g = 145;
+                b = 111;
+
+            }
+            else if (e < 0.78) {
+
+                r = 177;
+                g = 171;
+                b = 137;
+
+            }
+            else {
+
+                r = 207;
+                g = 201;
+                b = 173;
+
+            }
+
+
+            /*
+               Forest probability.
+               Forest is stronger on lower/mid elevations
+               and weaker on exposed high slopes.
+            */
+
+            const forestNoise =
+                fractalNoise(
+                    noise,
+                    x / W * 2.7 + 0.41,
+                    y / H * 2.7 + 0.73
+                );
+
+
+            const forestProbability =
+                forestNoise *
+                forest *
+                (1 - e * 0.75) *
+                (1 - slope * 0.55);
+
+
+            if (
+                forestProbability >
+                0.27
+            ) {
+
+                r *= 0.48;
+                g *= 0.63;
+                b *= 0.48;
+
+            }
+
+
+            /*
+               Hillshade.
+            */
+
+            const light =
+                1 -
+                slope * 0.35;
+
+            r *= light;
+            g *= light;
+            b *= light;
+
+
+            image.data[i * 4] =
+                r;
+
+            image.data[i * 4 + 1] =
+                g;
+
+            image.data[i * 4 + 2] =
+                b;
+
+            image.data[i * 4 + 3] =
+                255;
+
+        }
+
+    }
+
+
+    ctx.putImageData(
+        image,
+        0,
+        0
+    );
+
+
+    /*
+       Draw rivers.
+       These are valley-like stylized drainage lines
+       for the first cartographic prototype.
+    */
+
+    drawRivers(
+        elevation,
+        river,
+        noise
+    );
+
+
+    /*
+       Draw contour lines.
+    */
+
+    drawContours(
+        elevation,
+        contour
+    );
+
+
+    /*
+       Add forest texture.
+    */
+
+    drawForest(
+        elevation,
+        forest,
+        noise
+    );
+
+
+    /*
+       Add map frame.
+    */
+
+    ctx.strokeStyle =
+        "rgba(220,225,210,.45)";
+
+    ctx.lineWidth = 2;
+
+    ctx.strokeRect(
+        1,
+        1,
+        W - 2,
+        H - 2
+    );
+
+}
+
+
+/* -------------------------------------------------
+   Rivers
+------------------------------------------------- */
+
+function drawRivers(
+    elevation,
+    riverStrength,
+    noise
+) {
+
+    const rand =
+        mulberry32(
+            hashString(
+                document.getElementById("seed").value
+            ) + 991
+        );
+
+
+    const count =
+        Math.floor(
+            3 + riverStrength * 7
+        );
+
+
+    ctx.save();
+
+    ctx.strokeStyle =
+        "rgba(126,166,160,.78)";
+
+    ctx.lineWidth = 2.2;
+
+    ctx.lineCap = "round";
+
+
+    for (
+        let n = 0;
+        n < count;
+        n++
+    ) {
+
+        let x =
+            rand() * W;
+
+        let y =
+            rand() * H * 0.35;
+
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            x,
+            y
+        );
+
+
+        for (
+            let step = 0;
+            step < 180;
+            step++
+        ) {
+
+            const ix =
+                Math.max(
+                    1,
+                    Math.min(
+                        W - 2,
+                        Math.floor(x)
+                    )
+                );
+
+            const iy =
+                Math.max(
+                    1,
+                    Math.min(
+                        H - 2,
+                        Math.floor(y)
+                    )
+                );
+
+
+            const here =
+                elevation[
+                    iy * W + ix
+                ];
+
+
+            const left =
+                elevation[
+                    iy * W + ix - 1
+                ];
+
+            const right =
+                elevation[
+                    iy * W + ix + 1
+                ];
+
+            const up =
+                elevation[
+                    (iy - 1) * W + ix
+                ];
+
+            const down =
+                elevation[
+                    (iy + 1) * W + ix
+                ];
+
+
+            let dx = 0;
+            let dy = 0;
+
+
+            if (left < here) dx -= 1;
+            if (right < here) dx += 1;
+            if (up < here) dy -= 1;
+            if (down < here) dy += 1;
+
+
+            /*
+               Slight natural wandering.
+            */
+
+            dx +=
+                (rand() - .5) *
+                .45;
+
+            dy +=
+                (rand() - .5) *
+                .45;
+
+
+            const len =
+                Math.sqrt(
+                    dx * dx +
+                    dy * dy
+                ) || 1;
+
+
+            dx /= len;
+            dy /= len;
+
+
+            x += dx * 5;
+            y += dy * 5;
+
+
+            ctx.lineTo(
+                x,
+                y
+            );
+
+
+            if (
+                x < 5 ||
+                x > W - 5 ||
+                y < 5 ||
+                y > H - 5
+            ) break;
+
+        }
+
+        ctx.stroke();
+
+    }
+
+    ctx.restore();
+
+}
+
+
+/* -------------------------------------------------
+   Contours
+------------------------------------------------- */
+
+function drawContours(
+    elevation,
+    strength
+) {
+
+    if (strength <= 0)
+        return;
+
+
+    ctx.save();
+
+    ctx.strokeStyle =
+        "rgba(55,65,48,.24)";
+
+    ctx.lineWidth = 0.65;
+
+
+    const levels =
+        9 +
+        Math.floor(
+            strength * 16
+        );
+
+
+    for (
+        let level = 1;
+        level < levels;
+        level++
+    ) {
+
+        const threshold =
+            level / levels;
+
+
+        for (
+            let y = 2;
+            y < H - 2;
+            y += 3
+        ) {
+
+            for (
+                let x = 2;
+                x < W - 2;
+                x += 3
+            ) {
+
+                const e =
+                    elevation[
+                        y * W + x
+                    ];
+
+
+                const e2 =
+                    elevation[
+                        y * W +
+                        Math.min(W - 1, x + 3)
+                    ];
+
+
+                if (
+                    (e < threshold &&
+                     e2 >= threshold) ||
+                    (e >= threshold &&
+                     e2 < threshold)
+                ) {
+
+                    ctx.beginPath();
+
+                    ctx.moveTo(
+                        x,
+                        y
+                    );
+
+                    ctx.lineTo(
+                        x + 3,
+                        y
+                    );
+
+                    ctx.stroke();
+
+                }
+
+            }
+
+        }
+
+    }
+
+    ctx.restore();
+
+}
+
+
+/* -------------------------------------------------
+   Forest texture
+------------------------------------------------- */
+
+function drawForest(
+    elevation,
+    forestStrength,
+    noise
+) {
+
+    const rand =
+        mulberry32(
+            hashString(
+                document.getElementById("seed").value
+            ) + 12345
+        );
+
+
+    const trees =
+        Math.floor(
+            250 +
+            forestStrength * 900
+        );
+
+
+    ctx.save();
+
+    ctx.fillStyle =
+        "rgba(38,62,43,.38)";
+
+
+    for (
+        let i = 0;
+        i < trees;
+        i++
+    ) {
+
+        const x =
+            rand() * W;
+
+        const y =
+            rand() * H;
+
+
+        const e =
+            elevation[
+                Math.floor(y) * W +
+                Math.floor(x)
+            ];
+
+
+        /*
+           Avoid placing most trees on high mountains.
+        */
+
+        if (
+            e > 0.76 ||
+            e < 0.18
+        ) continue;
+
+
+        const s =
+            1 +
+            rand() * 2.5;
+
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            x,
+            y - s * 3
+        );
+
+        ctx.lineTo(
+            x - s * 2,
+            y + s * 2
+        );
+
+        ctx.lineTo(
+            x + s * 2,
+            y + s * 2
+        );
+
+        ctx.closePath();
+
+        ctx.fill();
+
+    }
+
+    ctx.restore();
+
+}
+
+
+/* -------------------------------------------------
+   UI
+------------------------------------------------- */
+
+function bindRange(
+    id,
+    output
+) {
+
+    const input =
+        document.getElementById(id);
+
+    const display =
+        document.getElementById(output);
+
+
+    input.addEventListener(
+        "input",
+        () => {
+            display.textContent =
+                input.value;
+        }
+    );
+
+}
+
+
+bindRange(
+    "mountain",
+    "mountainValue"
+);
+
+bindRange(
+    "hill",
+    "hillValue"
+);
+
+bindRange(
+    "rough",
+    "roughValue"
+);
+
+bindRange(
+    "forest",
+    "forestValue"
+);
+
+bindRange(
+    "river",
+    "riverValue"
+);
+
+bindRange(
+    "contour",
+    "contourValue"
+);
+
+
+document
+    .getElementById("generate")
+    .addEventListener(
+        "click",
+        generateTerrain
+    );
+
+
+document
+    .getElementById("randomSeed")
+    .addEventListener(
+        "click",
+        () => {
+
+            const chars =
+                "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+            let seed = "";
+
+            for (
+                let i = 0;
+                i < 10;
+                i++
+            ) {
+
+                seed +=
+                    chars[
+                        Math.floor(
+                            Math.random() *
+                            chars.length
+                        )
+                    ];
+
+            }
+
+            document
+                .getElementById("seed")
+                .value =
+                seed;
+
+            generateTerrain();
+
+        }
+    );
+
+
+document
+    .getElementById("download")
+    .addEventListener(
+        "click",
+        () => {
+
+            const link =
+                document.createElement("a");
+
+            link.download =
+                "virellus-terrain.png";
+
+            link.href =
+                canvas.toDataURL(
+                    "image/png"
+                );
+
+            link.click();
+
+        }
+    );
+
+
+/*
+   Initial generation.
+*/
+
+generateTerrain();
+
+</script>
+
+</body>
+</html>
